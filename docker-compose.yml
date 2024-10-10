@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - web_app
+
+  migrate:
+    image: migrate/migrate:v4.15.0
+    depends_on:
+      - db
+    networks:
+      - web_app
+    volumes:
+      - ./db/migrations:/migrations
+    env_file:
+      - .env
+    restart: no
+    command: ["-path", "/migrations", "-database", "$DATABASE_URL", "up"]
+
+  app:
+    build: .
+    restart: always
+    environment:
+      DEBUG: "false"
+    ports:
+      - "8080:8080"
+    networks:
+      - web_app
+    depends_on:
+      - db
+
+volumes:
+  db-data:
+
+networks:
+  web_app:
+    driver: bridge
+
