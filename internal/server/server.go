@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"music_info/internal/api"
 	"music_info/internal/config"
@@ -9,7 +10,6 @@ import (
 	"music_info/internal/service"
 	"net/http"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -65,7 +65,9 @@ func (s *server) Run(ctx context.Context, cfg *config.Config) {
 	go func() {
 		defer cancelSignal()
 
-		if err := s.router.Start(strconv.FormatUint(cfg.AppPort, 10)); err != nil && err != http.ErrServerClosed {
+		portStr := fmt.Sprintf(":%d", cfg.AppPort)
+
+		if err := s.router.Start(portStr); err != nil && err != http.ErrServerClosed {
 			log.Printf("server start error: %s\n", err.Error())
 		}
 	}()

@@ -33,11 +33,17 @@ func New() *Config {
 		log.Fatalf("[config]: parse port: %d: %s", port, err)
 	}
 
-	return &Config{
+	c := Config{
 		Debug:        debug,
 		AppPort:      port,
 		DatabaseAddr: must("DATABASE_URL"),
 	}
+
+	if debug {
+		c.Print()
+	}
+
+	return &c
 }
 
 func must(envName string) string {
@@ -54,4 +60,15 @@ func must(envName string) string {
 	}
 
 	return val
+}
+
+func (c *Config) Print() {
+	cfgStr := fmt.Sprintf(`
+App Config: {
+	Debug:			%t
+	AppPort:		%d
+	DatabaseAddr:	%s
+}`, c.Debug, c.AppPort, c.DatabaseAddr)
+
+	log.Println(cfgStr)
 }
