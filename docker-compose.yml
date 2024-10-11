@@ -1,43 +1,41 @@
 services:
   db:
     image: postgres:15
-    restart: always
+    restart: "always"
     env_file:
       - .env
     volumes:
       - db-data:/var/lib/postgresql/data
-    networks:
-      - web_app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      retries: 5
 
   migrate:
-    image: migrate/migrate:v4.15.0
+    image: migrate/migrate:v4.18.1
     depends_on:
-      - db
-    networks:
-      - web_app
+      db:
+        condition: service_healthy
     volumes:
       - ./db/migrations:/migrations
     env_file:
       - .env
-    restart: no
-    command: ["-path", "/migrations", "-database", "$DATABASE_URL", "up"]
+    restart: "no"
+    command: ["-path", "/migrations", "-database", "${DATABASE_URL}", "up"]
 
   app:
     build: .
-    restart: always
+    restart: "always"
+    env_file:
+      - .env
     environment:
-      DEBUG: "false"
+      APP_PORTS: "${APP_PORTS}"
+      DEBUG: "${DEBUG}"
     ports:
-      - "8080:8080"
-    networks:
-      - web_app
+      - "${APP_PORTS}"
     depends_on:
       - db
+      - migrate
 
 volumes:
   db-data:
-
-networks:
-  web_app:
-    driver: bridge
-
