@@ -27,7 +27,11 @@ func (s *storage) GetInfoByGroupAndSong(ctx context.Context, filter dto.InfoByGr
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	query := ``
+	query := `SELECT s.release_date, s.lyrics, s.link
+FROM music.song s
+JOIN music.group g ON s.group_id = g.id
+WHERE g.group_name = $1 
+AND s.song_name = $2;`
 
 	var song model.SongDetail
 
