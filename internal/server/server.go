@@ -9,6 +9,7 @@ import (
 	"music_info/internal/service"
 	"net/http"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -64,7 +65,7 @@ func (s *server) Run(ctx context.Context, cfg *config.Config) {
 	go func() {
 		defer cancelSignal()
 
-		if err := s.router.Start(string(cfg.AppPort)); err != nil && err != http.ErrServerClosed {
+		if err := s.router.Start(strconv.FormatUint(cfg.AppPort, 10)); err != nil && err != http.ErrServerClosed {
 			log.Printf("server start error: %s\n", err.Error())
 		}
 	}()
