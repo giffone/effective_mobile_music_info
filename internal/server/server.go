@@ -13,9 +13,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	echoLog "github.com/labstack/gommon/log"
+	echoSwagger "github.com/swaggo/echo-swagger"
 )
 
 type Server interface {
@@ -52,7 +53,8 @@ func NewServer(env *Env, cfg *config.Config) Server {
 	s.router.Use(middleware.Logger(), middleware.Recover())
 
 	// register handlers
-	g1 := s.router.Group("/api/v1/")
+	g1 := s.router.Group("/api/v1")
+	g1.GET("/swagger/*", echoSwagger.WrapHandler)
 	g1.GET("/info", hndl.GetInfoBy)
 
 	return &s

@@ -6,6 +6,12 @@ import (
 	"music_info/internal/server"
 )
 
+// @title Music
+// @version 1.0
+// @description This is a sample Music server.
+
+// @host localhost:8080
+// @BasePath /api/v1
 func main() {
 	ctx := context.Background()
 

@@ -1,12 +1,13 @@
 package api
 
 import (
+	"log"
 	"music_info/internal/dto"
 	"music_info/internal/service"
 	"net/http"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 )
 
 type Handler interface {
@@ -37,7 +38,7 @@ func (h *handler) GetInfoBy(c echo.Context) error {
 	var filter dto.InfoByGroupAndSong
 
 	// parse request
-	if err := c.Bind(&filter); err != nil {
+	if err := c.Bind(&filter); err != nil || filter.Empty() {
 		return c.String(http.StatusBadRequest, "Bad Request")
 	}
 
@@ -47,7 +48,8 @@ func (h *handler) GetInfoBy(c echo.Context) error {
 		if err == pgx.ErrNoRows {
 			return c.String(http.StatusNotFound, "Song not found")
 		}
-		c.String(http.StatusInternalServerError, "Internal Server Error")
+		log.Println("err is: %w", err)
+		return c.String(http.StatusInternalServerError, "Internal Server Error")
 	}
 
 	// ok
