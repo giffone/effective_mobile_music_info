@@ -2,10 +2,12 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"music_info/internal/api"
 	"music_info/internal/config"
+	"music_info/internal/model"
 	"music_info/internal/repo"
 	"music_info/internal/service"
 	"net/http"
@@ -13,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoLog "github.com/labstack/gommon/log"
@@ -52,9 +55,15 @@ func NewServer(env *Env, cfg *config.Config) Server {
 	// set middlewares
 	s.router.Use(middleware.Logger(), middleware.Recover())
 
+	// set error handler
+	s.router.HTTPErrorHandler = HTTPErrorHandler
+
 	// register handlers
 	g1 := s.router.Group("/api/v1")
 	g1.GET("/swagger/*", echoSwagger.WrapHandler)
+
+	g1.POST("/create", hndl.CreateSong)
+	g1.PUT("/update", hndl.UpdateSong)
 	g1.GET("/info", hndl.GetInfoBy)
 
 	return &s
@@ -92,5 +101,26 @@ func (s *server) Stop(ctx context.Context) {
 		log.Println("server stopped successfully with no error")
 	} else {
 		log.Println("server stop done")
+	}
+}
+
+func HTTPErrorHandler(err error, c echo.Context) {
+	log.Println("==================")
+	log.Println(err)
+	log.Println("==================")
+
+	var httpErr *echo.HTTPError
+	if errors.As(err, &httpErr) {
+		c.JSON(httpErr.Code, http.StatusText(httpErr.Code))
+		return
+	}
+
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		c.String(http.StatusNotFound, "Not found")
+	case errors.Is(err, model.ErrBadData):
+		c.String(http.StatusBadRequest, "Bad data")
+	default:
+		c.String(http.StatusInternalServerError, "Internal server error")
 	}
 }

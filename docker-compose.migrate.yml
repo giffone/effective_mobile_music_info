@@ -1,0 +1,9 @@
+services:
+  migrate:
+    image: migrate/migrate:v4.18.1
+    volumes:
+      - ./db/migrations:/migrations
+    env_file:
+      - .env
+    restart: "no"
+    command: ["-path", "/migrations", "-database", "${DATABASE_URL}", "up"]

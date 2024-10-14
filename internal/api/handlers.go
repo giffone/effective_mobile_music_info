@@ -1,16 +1,18 @@
 package api
 
 import (
-	"log"
+	"errors"
 	"music_info/internal/dto"
+	"music_info/internal/model"
 	"music_info/internal/service"
 	"net/http"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/labstack/echo/v4"
 )
 
 type Handler interface {
+	CreateSong(c echo.Context) error
+	UpdateSong(c echo.Context) error
 	GetInfoBy(e echo.Context) error
 }
 
@@ -20,6 +22,42 @@ func New(service service.Service) Handler {
 
 type handler struct {
 	service service.Service
+}
+
+func (h *handler) CreateSong(c echo.Context) error {
+	var song dto.Song
+
+	// parse request
+	if err := c.Bind(&song); err != nil {
+		return errors.Join(model.ErrBadData, err)
+	}
+
+	// create song
+	err := h.service.CreateSong(c.Request().Context(), song)
+	if err != nil {
+		return err
+	}
+
+	// ok
+	return c.String(http.StatusCreated, "Success")
+}
+
+func (h *handler) UpdateSong(c echo.Context) error {
+	var song dto.UpdateSong
+
+	// parse request
+	if err := c.Bind(&song); err != nil {
+		return errors.Join(model.ErrBadData, err)
+	}
+
+	// update song
+	err := h.service.UpdateSong(c.Request().Context(), song)
+	if err != nil {
+		return err
+	}
+
+	// ok
+	return c.String(http.StatusOK, "Updated")
 }
 
 // @Summary Get song info
@@ -35,21 +73,17 @@ type handler struct {
 // @Failure 500 {object} echo.HTTPError "Internal Server Error"
 // @Router /info [get]
 func (h *handler) GetInfoBy(c echo.Context) error {
-	var filter dto.InfoByGroupAndSong
+	var filter dto.Song
 
 	// parse request
-	if err := c.Bind(&filter); err != nil || filter.Empty() {
-		return c.String(http.StatusBadRequest, "Bad Request")
+	if err := c.Bind(&filter); err != nil {
+		return errors.Join(model.ErrBadData, err)
 	}
 
 	// get song
 	song, err := h.service.GetInfoByGroupAndSong(c.Request().Context(), filter)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return c.String(http.StatusNotFound, "Song not found")
-		}
-		log.Println("err is: %w", err)
-		return c.String(http.StatusInternalServerError, "Internal Server Error")
+		return err
 	}
 
 	// ok

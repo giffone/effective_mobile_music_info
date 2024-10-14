@@ -1,0 +1,13 @@
+services:
+  app:
+    build: .
+    restart: "always"
+    env_file:
+      - .env
+    environment:
+      APP_PORTS: "${APP_PORTS}"
+      DEBUG: "${DEBUG}"
+    ports:
+      - "${APP_PORTS}"
+    volumes:
+      - ./status:/status
