@@ -38,3 +38,33 @@ curl --request GET \
   --url 'http://localhost:8080/api/v1/info?group=ABBA&song=Dancing%20Queen' \
   --header 'User-Agent: insomnia/10.0.0'
 ```
+
+To check database
+```bash
+# login
+psql -U postgres
+
+# switch db
+\c music_info_db
+
+# show tables
+\dt music.*
+
+#               List of relations
+# Schema |       Name        | Type  |  Owner   
+#--------+-------------------+-------+----------
+# music  | group             | table | postgres
+# music  | schema_migrations | table | postgres
+# music  | song              | table | postgres
+#(3 rows)
+
+# show song
+select * from music.song;
+
+# group_id |   song_name   |                           lyrics                            |                    link                     | release_date 
+#----------+---------------+-------------------------------------------------------------+---------------------------------------------+--------------
+#        1 | Dancing Queen | You can dance, you can jive, having the time of your life  +| https://www.youtube.com/watch?v=xFrGuyw1V8s | 1976-08-16
+#          |               | See that girl, watch that scene, diggin' the dancing queen +|                                             | 
+#          |               | Friday night and the lights are low,                       +|                                             | 
+#(1 row)
+```
